@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import {
   upsertEvent,
@@ -313,7 +314,7 @@ export function FormPageChrome({
   backLabel,
   children
 }: {
-  backHref: string;
+  backHref: Route;
   backLabel: string;
   children: React.ReactNode;
 }) {

@@ -1,13 +1,14 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { CalendarDays, ClipboardList, Home, NotebookPen, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: Home },
-  { href: "/people", label: "People", icon: Users },
-  { href: "/events", label: "Events", icon: CalendarDays },
-  { href: "/tasks", label: "Tasks", icon: ClipboardList },
-  { href: "/knowledge", label: "Knowledge", icon: NotebookPen }
+  { href: "/" as Route, label: "Dashboard", icon: Home },
+  { href: "/people" as Route, label: "People", icon: Users },
+  { href: "/events" as Route, label: "Events", icon: CalendarDays },
+  { href: "/tasks" as Route, label: "Tasks", icon: ClipboardList },
+  { href: "/knowledge" as Route, label: "Knowledge", icon: NotebookPen }
 ];
 
 export function AppShell({

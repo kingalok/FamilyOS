@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
@@ -19,7 +20,7 @@ export function DataTable<T extends { id: string }>({
   data: T[];
   emptyTitle: string;
   emptyDescription: string;
-  editHref: (item: T) => string;
+  editHref: (item: T) => Route;
 }) {
   if (data.length === 0) {
     return <EmptyState title={emptyTitle} description={emptyDescription} />;

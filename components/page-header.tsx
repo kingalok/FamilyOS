@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
@@ -11,7 +12,7 @@ export function PageHeader({
   eyebrow: string;
   title: string;
   description: string;
-  actionHref?: string;
+  actionHref?: Route;
   actionLabel?: string;
 }) {
   return (
