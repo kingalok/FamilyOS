@@ -219,3 +219,5 @@ tsconfig.tsbuildinfo
 # Ignore all the enviornment files
 .env*
 !.env.example
+!/lib/
+!/lib/**
