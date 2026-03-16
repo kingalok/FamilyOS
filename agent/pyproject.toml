@@ -1,0 +1,22 @@
+[project]
+name = "familyos-agent"
+version = "0.1.0"
+description = "Python agent and domain service scaffold for FamilyOS."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "langchain-core>=0.3.40",
+  "langgraph>=0.2.67",
+  "psycopg[binary]>=3.2.6",
+  "pydantic>=2.10.6"
+]
+
+[project.scripts]
+familyos-agent = "app.cli:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
