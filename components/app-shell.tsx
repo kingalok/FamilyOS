@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { CalendarDays, ClipboardList, Home, NotebookPen, Users } from "lucide-react";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -13,10 +14,12 @@ const navItems = [
 
 export function AppShell({
   children,
-  pathname
+  pathname,
+  userEmail
 }: {
   children: React.ReactNode;
   pathname: string;
+  userEmail?: string;
 }) {
   return (
     <div className="min-h-screen">
@@ -59,6 +62,16 @@ export function AppShell({
               Shared Supabase workspace for the FamilyOS web app and Python agent layer.
             </p>
           </div>
+
+          {userEmail ? (
+            <div className="mt-4 rounded-3xl border border-clay/70 bg-white/70 p-4">
+              <p className="text-xs uppercase tracking-[0.24em] text-pine/60">Signed in</p>
+              <p className="mt-2 break-all text-sm text-ink/75">{userEmail}</p>
+              <div className="mt-4">
+                <LogoutButton />
+              </div>
+            </div>
+          ) : null}
         </aside>
 
         <main className="flex-1">{children}</main>

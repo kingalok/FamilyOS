@@ -2,12 +2,14 @@
 
 FamilyOS is a private AI-native family operating system built on one shared Supabase Postgres database.
 
-It is structured around two access paths to the same source of truth:
+## One Database, Two Doors
 
-- Human door: a Next.js web application
-- AI door: a Python agent/service layer that can later be exposed through MCP
+FamilyOS is designed around one source of truth with two access paths:
 
-The important design choice is that MCP is not the business logic. Core logic lives in reusable Python services, while the web app and future MCP layer both depend on the same shared data model.
+- Web UI -> Supabase: the deployed Next.js app is the human door for browsing and updating family data.
+- AI/LLM -> MCP -> Supabase: an MCP-capable AI client can use Supabase MCP to read and work with the same FamilyOS data.
+
+This keeps the architecture simple. The database remains the system of record, the web app remains the human interface, and MCP becomes the AI access path instead of a separate application stack.
 
 ## Architecture
 
@@ -15,10 +17,10 @@ FamilyOS follows a "one database, two doors" model:
 
 1. Supabase Postgres is the system of record.
 2. The Next.js app provides the human-facing UI over the shared data.
-3. The Python agent layer talks to the same database through reusable domain services.
-4. A future MCP layer should wrap domain tools rather than expose raw SQL as the main interface.
+3. Supabase MCP is the preferred AI access path when you want ChatGPT-compatible or agent-compatible tools over the same data.
+4. Helper views in Supabase provide simpler read models for common AI workflows.
 
-This keeps the foundation extendable for future domains like contacts, assets, shopping, documents, routines, school logistics, health reminders, and finance reminders.
+This keeps the foundation extendable for future domains like contacts, assets, shopping, documents, routines, school logistics, health reminders, and finance reminders without adding unnecessary infrastructure.
 
 ## Stack
 
@@ -196,15 +198,25 @@ Notes:
 - The frontend is Vercel-friendly.
 - `DATABASE_URL` is only required for the Python agent or any future backend process using the service layer.
 
-## MCP Later
+## MCP
 
-Recommended future direction:
+FamilyOS is prepared for Supabase MCP usage without adding a custom MCP server.
 
-1. Use Supabase MCP directly for trusted low-level access when appropriate.
-2. Add a custom FamilyOS MCP server later only if you want higher-level domain tools and guardrails.
-3. Wrap the methods in [`agent/app/tools/familyos_tools.py`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/agent/app/tools/familyos_tools.py), not raw SQL.
+- Use the hosted Supabase MCP endpoint against your `myworld` project.
+- Prefer querying FamilyOS tables and the MCP-friendly helper views:
+  - `upcoming_events_view`
+  - `open_tasks_view`
+  - `recent_knowledge_items_view`
+- If you want AI write capability, connect without `read_only=true` and keep the connection project-scoped.
+- Prefer structured SQL helper functions for writes:
+  - `create_task(...)`
+  - `create_event(...)`
+  - `save_knowledge_item(...)`
+  - `update_task_status(...)`
+- Treat hosted Supabase MCP as a development/testing access path and review Supabase security guidance before connecting it to sensitive family data.
+- Add a custom FamilyOS MCP server only later if you need higher-level domain tools, stricter guardrails, or workflow orchestration beyond direct Supabase access.
 
-The seam for that is already shown in [`agent/app/mcp_stub.py`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/agent/app/mcp_stub.py).
+Detailed setup steps live in [`docs/mcp-setup.md`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/docs/mcp-setup.md).
 
 ## Key Commands
 

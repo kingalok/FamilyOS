@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { AppShell } from "@/components/app-shell";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,11 +16,27 @@ export default async function RootLayout({
 }>) {
   const headerList = await headers();
   const pathname = headerList.get("x-pathname") ?? "/";
+  const isLoginPage = pathname === "/login";
+
+  if (isLoginPage) {
+    return (
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    );
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
 
   return (
     <html lang="en">
       <body>
-        <AppShell pathname={pathname}>{children}</AppShell>
+        <AppShell pathname={pathname} userEmail={user?.email}>
+          {children}
+        </AppShell>
       </body>
     </html>
   );
