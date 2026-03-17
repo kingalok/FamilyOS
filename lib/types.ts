@@ -76,3 +76,15 @@ export interface DashboardData {
   overdueTasks: Task[];
   recentKnowledgeItems: KnowledgeItem[];
 }
+
+export type SearchResultType = "event" | "task" | "knowledge";
+
+export interface SearchResult {
+  id: string;
+  type: SearchResultType;
+  title: string;
+  subtitle: string;
+  preview: string;
+  href: string;
+  updatedAt: string;
+}

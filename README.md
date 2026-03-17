@@ -1,75 +1,81 @@
 # FamilyOS
 
-FamilyOS is a private AI-native family operating system built on one shared Supabase Postgres database.
+FamilyOS is a private home-use operating system for shared family data, built on one Supabase Postgres database.
 
 ## One Database, Two Doors
 
-FamilyOS is designed around one source of truth with two access paths:
+- Web access: the Next.js app is the human-facing door for signed-in browser use.
+- MCP access: an MCP-capable AI client can connect to the same Supabase project and operate on the same FamilyOS data.
 
-- Web UI -> Supabase: the deployed Next.js app is the human door for browsing and updating family data.
-- AI/LLM -> MCP -> Supabase: an MCP-capable AI client can use Supabase MCP to read and work with the same FamilyOS data.
+The database stays the source of truth. The web app and MCP clients are just two ways into the same system.
 
-This keeps the architecture simple. The database remains the system of record, the web app remains the human interface, and MCP becomes the AI access path instead of a separate application stack.
+## What Works Now
 
-## Architecture
+- Supabase email/password login
+- Protected app routes
+- Row Level Security on core FamilyOS tables
+- Shared Supabase-backed data for:
+  - `people`
+  - `events`
+  - `tasks`
+  - `knowledge_items`
+- MCP-friendly read views and write helper functions
 
-FamilyOS follows a "one database, two doors" model:
+## Authentication
 
-1. Supabase Postgres is the system of record.
-2. The Next.js app provides the human-facing UI over the shared data.
-3. Supabase MCP is the preferred AI access path when you want ChatGPT-compatible or agent-compatible tools over the same data.
-4. Helper views in Supabase provide simpler read models for common AI workflows.
+FamilyOS uses Supabase Auth with email/password only.
 
-This keeps the foundation extendable for future domains like contacts, assets, shopping, documents, routines, school logistics, health reminders, and finance reminders without adding unnecessary infrastructure.
+How it works in simple terms:
 
-## Stack
+- if you are not signed in, private app routes redirect to `/login`
+- after a successful login, you are redirected back to the page you originally requested
+- if you are already signed in and visit `/login`, you are redirected into the app
+- logout clears the Supabase session and sends you back to `/login`
 
-- Next.js App Router
-- TypeScript
-- Tailwind CSS
-- Supabase Postgres
-- SQL migrations in `supabase/migrations`
-- Seed data in `supabase/seed.sql`
-- Python 3.11+ scaffold with `psycopg`, `langgraph`, and `langchain-core`
+Protected routes include:
 
-## Project Structure
+- `/`
+- `/people`
+- `/events`
+- `/tasks`
+- `/knowledge`
 
-```text
-FamilyOS/
-  app/
-  components/
-  lib/
-  public/
-  supabase/
-    migrations/
-    seed.sql
-  agent/
-    app/
-      graph/
-      services/
-      tools/
-      cli.py
-  README.md
-  .env.example
-  package.json
-```
+Public access is limited to:
 
-## Current Domains
+- `/login`
+- static assets
+- future auth callback routes if added later
 
-- People
-- Events
-- Tasks
-- Knowledge Items
+## RLS
 
-## Frontend Setup
+FamilyOS uses Supabase Row Level Security to keep access simple and safe for now.
 
-1. Create local environment variables:
+Current model:
+
+- `anon` users are blocked
+- `authenticated` users can read and write FamilyOS records
+- there is no per-user row ownership logic yet
+
+In plain English: you must be signed in, and once signed in, you can use the current private FamilyOS app normally.
+
+## Web Access vs MCP Access
+
+These are separate authentication paths:
+
+- Web access uses browser login through Supabase Auth
+- MCP access uses the MCP client’s own connection/auth flow to Supabase MCP
+
+Signing into the FamilyOS website does not automatically sign an MCP client into Supabase MCP, and connecting MCP does not automatically sign you into the browser app.
+
+## Local Run
+
+1. Create local env vars:
 
 ```bash
 cp .env.example .env.local
 ```
 
-2. Fill in:
+2. Set at minimum:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=...
@@ -77,13 +83,13 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 DATABASE_URL=...
 ```
 
-3. Install frontend dependencies:
+3. Install dependencies:
 
 ```bash
 npm install
 ```
 
-4. Run the Next.js app:
+4. Start the app:
 
 ```bash
 npm run dev
@@ -91,132 +97,112 @@ npm run dev
 
 5. Open [http://localhost:3000](http://localhost:3000)
 
-## Python Agent Setup
+## Required Environment Variables
 
-The agent scaffold expects Python 3.11+.
+For the web app:
 
-Using `uv`:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-```bash
-cd agent
-uv sync
-uv run familyos-agent list-open-tasks
-uv run familyos-agent upcoming-events
-uv run familyos-agent run-graph --request "show me upcoming events"
-```
+Useful for local admin/agent work:
 
-Using `pip`:
+- `DATABASE_URL`
 
-```bash
-cd agent
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install -e .
-familyos-agent list-open-tasks
-```
+Optional MCP-related values:
+
+- `SUPABASE_PROJECT_REF`
+- `SUPABASE_ACCESS_TOKEN`
+
+## Vercel Deployment
+
+FamilyOS is Vercel-friendly.
+
+Required Vercel env vars:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+
+Deployment checklist:
+
+1. Push the latest commit to GitHub.
+2. In Vercel, confirm the project points at the FamilyOS repo.
+3. In Vercel project settings, add or verify:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+4. Redeploy the app.
+5. Test login, logout, and one protected route such as `/tasks`.
+
+Detailed deploy checklist:
+
+- [`docs/vercel-deployment.md`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/docs/vercel-deployment.md)
 
 ## Supabase Setup For `myworld`
 
 Manual Supabase steps:
 
-1. Create or open the Supabase project/environment named `myworld`.
-2. Copy the project URL into `NEXT_PUBLIC_SUPABASE_URL`.
-3. Copy the publishable key into `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-4. Copy the Postgres connection string into `DATABASE_URL`.
-5. For this internal POC, keep auth minimal for now. If you enable RLS later, add policies that match your chosen access pattern.
-
-## Run Migrations
-
-With Supabase CLI:
-
-```bash
-supabase link --project-ref <your-project-ref>
-supabase db push
-```
-
-Or run the migration manually in Supabase SQL editor:
-
-- [`supabase/migrations/20250316180000_init_familyos.sql`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/supabase/migrations/20250316180000_init_familyos.sql)
-
-## Seed Data
-
-If you use the Supabase CLI and want a clean local reset:
-
-```bash
-supabase db reset
-```
-
-Or run the seed file directly:
-
-- [`supabase/seed.sql`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/supabase/seed.sql)
-
-The seed includes:
-
-- Alok Sharma
-- Shilpa
-- Aarav
-- Sample tasks
-- Sample events
-- Sample knowledge items
-
-## Web App Routes
-
-- `/`
-- `/people`
-- `/people/new`
-- `/people/[id]`
-- `/events`
-- `/events/new`
-- `/events/[id]`
-- `/tasks`
-- `/tasks/new`
-- `/tasks/[id]`
-- `/knowledge`
-- `/knowledge/new`
-- `/knowledge/[id]`
-
-## Dashboard Coverage
-
-- Upcoming events
-- Open tasks
-- Overdue tasks
-- Recently updated knowledge items
-- People count
-
-## Vercel Deployment
-
-1. Push this repo to GitHub.
-2. Import it into Vercel.
-3. Keep the project root at the repository root.
-4. Add:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-5. Deploy.
-
-Notes:
-
-- The frontend is Vercel-friendly.
-- `DATABASE_URL` is only required for the Python agent or any future backend process using the service layer.
+1. Enable email/password auth.
+2. Create your Supabase Auth user.
+3. Keep RLS enabled on FamilyOS tables.
+4. Apply the FamilyOS migrations in `supabase/migrations`.
+5. Verify authenticated policies exist for:
+   - `people`
+   - `events`
+   - `tasks`
+   - `knowledge_items`
 
 ## MCP
 
-FamilyOS is prepared for Supabase MCP usage without adding a custom MCP server.
+FamilyOS is prepared for Supabase MCP without adding a custom MCP server.
 
 - Use the hosted Supabase MCP endpoint against your `myworld` project.
-- Prefer querying FamilyOS tables and the MCP-friendly helper views:
+- Browser auth and MCP auth are separate.
+- Prefer these read helpers:
   - `upcoming_events_view`
   - `open_tasks_view`
   - `recent_knowledge_items_view`
-- If you want AI write capability, connect without `read_only=true` and keep the connection project-scoped.
-- Prefer structured SQL helper functions for writes:
+- Prefer these write helpers:
   - `create_task(...)`
   - `create_event(...)`
   - `save_knowledge_item(...)`
   - `update_task_status(...)`
-- Treat hosted Supabase MCP as a development/testing access path and review Supabase security guidance before connecting it to sensitive family data.
-- Add a custom FamilyOS MCP server only later if you need higher-level domain tools, stricter guardrails, or workflow orchestration beyond direct Supabase access.
 
-Detailed setup steps live in [`docs/mcp-setup.md`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/docs/mcp-setup.md).
+Detailed MCP notes:
+
+- [`docs/mcp-setup.md`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/docs/mcp-setup.md)
+- [`docs/chatgpt-familyos-context.md`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/docs/chatgpt-familyos-context.md)
+
+## Retest After Auth And RLS Changes
+
+Browser checks:
+
+1. Open the app while signed out and confirm private routes redirect to `/login`.
+2. Sign in with your Supabase email/password user.
+3. Confirm you land on the originally requested page after login.
+4. Open:
+   - `/`
+   - `/people`
+   - `/events`
+   - `/tasks`
+   - `/knowledge`
+   - `/search?q=school`
+5. Create or edit one record in each domain you actively use.
+6. Log out and confirm you are returned to `/login`.
+
+MCP checks:
+
+1. Re-open your MCP-enabled chat and verify the FamilyOS Supabase connection is still attached.
+2. Re-test one read:
+   - open tasks via `open_tasks_view`
+3. Re-test one write:
+   - create a task
+4. Re-test one update:
+   - update a task status
+
+MCP note:
+
+- RLS policy changes do not usually require a new browser login to the website.
+- MCP is likely only partially affected: existing MCP setup should continue to work if it authenticates as an `authenticated` Supabase user, but you may need to reconnect or re-authorize the MCP client if it cached an older session or now hits permission errors.
+- If MCP starts failing after the RLS migration, reconnect the MCP app first before changing policies again.
 
 ## Key Commands
 
@@ -235,19 +221,10 @@ supabase db push
 supabase db reset
 ```
 
-Python:
+Python scaffold:
 
 ```bash
 cd agent
 uv sync
 uv run familyos-agent list-open-tasks
-uv run familyos-agent run-graph --request "show open tasks"
 ```
-
-## Notes
-
-- Secrets are environment-variable driven only.
-- Core searchable data lives in standard SQL columns.
-- `jsonb metadata` is used for extensibility.
-- The Python graph is intentionally thin and readable.
-- Core Python services are the right future seam for MCP wrapping.

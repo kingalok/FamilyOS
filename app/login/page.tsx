@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export default async function LoginPage({
   searchParams
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; redirectTo?: string }>;
 }) {
   const supabase = await createSupabaseServerClient();
   const {
@@ -34,7 +34,7 @@ export default async function LoginPage({
           <h2 className="text-2xl font-semibold">Welcome back</h2>
           <p className="mt-2 text-sm text-ink/65">Use your Supabase email/password account to continue.</p>
           <div className="mt-8">
-            <LoginForm error={params.error} />
+            <LoginForm error={params.error} redirectTo={params.redirectTo} />
           </div>
         </div>
       </div>

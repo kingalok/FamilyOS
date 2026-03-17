@@ -1,9 +1,10 @@
 import { LockKeyhole, Mail } from "lucide-react";
 import { signInWithPassword } from "@/app/auth/actions";
 
-export function LoginForm({ error }: { error?: string }) {
+export function LoginForm({ error, redirectTo }: { error?: string; redirectTo?: string }) {
   return (
     <form action={signInWithPassword} className="space-y-5">
+      <input type="hidden" name="redirectTo" value={redirectTo ?? "/"} />
       <div>
         <label htmlFor="email">Email</label>
         <div className="mt-2 flex items-center gap-3 rounded-2xl border border-clay/70 bg-white/90 px-4 py-3">

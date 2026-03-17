@@ -7,9 +7,19 @@ function getField(formData: FormData, key: string) {
   return formData.get(key)?.toString().trim() ?? "";
 }
 
+function getRedirectTarget(formData: FormData) {
+  const redirectTo = getField(formData, "redirectTo");
+  if (!redirectTo || !redirectTo.startsWith("/") || redirectTo.startsWith("//")) {
+    return "/";
+  }
+
+  return redirectTo;
+}
+
 export async function signInWithPassword(formData: FormData) {
   const email = getField(formData, "email");
   const password = getField(formData, "password");
+  const redirectTo = getRedirectTarget(formData);
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({
@@ -18,10 +28,12 @@ export async function signInWithPassword(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/login?error=${encodeURIComponent("Invalid email or password.")}`);
+    redirect(
+      `/login?error=${encodeURIComponent("Invalid email or password.")}&redirectTo=${encodeURIComponent(redirectTo)}`
+    );
   }
 
-  redirect("/");
+  redirect(redirectTo);
 }
 
 export async function signOut() {

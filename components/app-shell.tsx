@@ -2,6 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { CalendarDays, ClipboardList, Home, NotebookPen, Users } from "lucide-react";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { GlobalSearchForm } from "@/components/search/global-search-form";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -15,11 +16,13 @@ const navItems = [
 export function AppShell({
   children,
   pathname,
-  userEmail
+  userEmail,
+  initialSearchQuery
 }: {
   children: React.ReactNode;
   pathname: string;
   userEmail?: string;
+  initialSearchQuery?: string;
 }) {
   return (
     <div className="min-h-screen">
@@ -74,7 +77,12 @@ export function AppShell({
           ) : null}
         </aside>
 
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 space-y-5">
+          <div className="rounded-[2rem] border border-white/80 bg-white/80 p-4 shadow-panel">
+            <GlobalSearchForm initialQuery={initialSearchQuery} />
+          </div>
+          {children}
+        </main>
       </div>
     </div>
   );

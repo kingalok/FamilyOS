@@ -16,6 +16,7 @@ export default async function RootLayout({
 }>) {
   const headerList = await headers();
   const pathname = headerList.get("x-pathname") ?? "/";
+  const initialSearchQuery = headerList.get("x-search-query") ?? "";
   const isLoginPage = pathname === "/login";
 
   if (isLoginPage) {
@@ -34,7 +35,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppShell pathname={pathname} userEmail={user?.email}>
+        <AppShell pathname={pathname} userEmail={user?.email} initialSearchQuery={initialSearchQuery}>
           {children}
         </AppShell>
       </body>

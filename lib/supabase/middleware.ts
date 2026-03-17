@@ -19,12 +19,21 @@ function getSupabaseEnv() {
 }
 
 function isPublicPath(pathname: string) {
-  return pathname === "/login";
+  return pathname === "/login" || pathname.startsWith("/auth/callback");
+}
+
+function getSafeRedirectTarget(rawValue: string | null) {
+  if (!rawValue || !rawValue.startsWith("/") || rawValue.startsWith("//")) {
+    return "/";
+  }
+
+  return rawValue;
 }
 
 export async function updateSession(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", request.nextUrl.pathname);
+  requestHeaders.set("x-search-query", request.nextUrl.searchParams.get("q") ?? "");
 
   let response = NextResponse.next({
     request: {
@@ -57,6 +66,8 @@ export async function updateSession(request: NextRequest) {
   if (!user && !isPublicPath(pathname)) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
+    const requestedPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+    loginUrl.searchParams.set("redirectTo", requestedPath);
     const redirectResponse = NextResponse.redirect(loginUrl);
     response.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie);
@@ -65,8 +76,11 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && pathname === "/login") {
+    const redirectTarget = getSafeRedirectTarget(request.nextUrl.searchParams.get("redirectTo"));
     const appUrl = request.nextUrl.clone();
-    appUrl.pathname = "/";
+    const redirectUrl = new URL(redirectTarget, request.url);
+    appUrl.pathname = redirectUrl.pathname;
+    appUrl.search = redirectUrl.search;
     const redirectResponse = NextResponse.redirect(appUrl);
     response.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie);
