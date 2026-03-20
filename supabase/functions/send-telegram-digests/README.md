@@ -12,9 +12,9 @@ Supabase Edge Function for FamilyOS Telegram digests.
 ## Behavior
 
 - Uses `Europe/London` as the business timezone
-- Daily digest: every day at 7:00 a.m. London time for tomorrow
-- Weekly digest: every Saturday at 7:00 a.m. London time for Saturday through Friday
-- Monthly digest: on the 1st at 7:00 a.m. London time for the month
+- Daily digest: every day the function runs, for tomorrow
+- Weekly digest: when the London-local day is Saturday, for Saturday through Friday
+- Monthly digest: when the London-local day is the 1st, for the month
 
 ## No-Items Behavior
 
@@ -23,8 +23,9 @@ It logs the period as `skipped` in `notification_log`.
 
 ## Suggested Scheduling
 
-The simplest setup is one cron invocation at 7:00 a.m. London time each day.
-The function decides internally whether daily, weekly, and/or monthly digests are due.
+The simplest setup is one cron invocation once per day in UTC.
+For FamilyOS, a daily cron such as `0 6 * * *` is enough.
+The function decides internally whether weekly and/or monthly digests are also due based on the London-local date.
 
 If you also invoke it manually for testing, use a POST body such as:
 

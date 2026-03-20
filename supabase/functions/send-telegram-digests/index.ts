@@ -41,7 +41,6 @@ type RequestPayload = {
 };
 
 const BUSINESS_TIMEZONE = "Europe/London";
-const DIGEST_HOUR = 7;
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -89,10 +88,6 @@ function getLondonTimeParts(now: Date) {
 
 function getDueDigests(now: Date, force = false): DigestType[] {
   const london = getLondonTimeParts(now);
-  if (!force && london.hour !== DIGEST_HOUR) {
-    return [];
-  }
-
   const dueDigests: DigestType[] = ["daily"];
 
   if (london.weekday === "Saturday") {
