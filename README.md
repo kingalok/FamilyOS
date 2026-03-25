@@ -1,6 +1,18 @@
 # FamilyOS
 
-FamilyOS is a private home-use operating system for shared family data, built on one Supabase Postgres database.
+FamilyOS is a private AI-native family operating system for home use, built on one shared Supabase Postgres database.
+
+It is designed around a simple idea: one database, two doors.
+
+- a calm web app for humans
+- a structured MCP-ready data layer for AI
+
+![FamilyOS](public/FamilyOS.jpeg)
+
+FamilyOS is built and shared by [Alok Sharma](https://www.linkedin.com/in/kingalok-sharma/).
+
+Related post:
+- [FamilyOS on LinkedIn](https://www.linkedin.com/posts/kingalok-sharma_ai-contextengineering-nextjs-activity-7439756792647139330-kfIn?utm_source=share&utm_medium=member_desktop&rcm=ACoAAA4CjiwBGtCwcvfvVNus8F1u7V853hDlKAM)
 
 ## One Database, Two Doors
 
@@ -170,59 +182,6 @@ Detailed MCP notes:
 
 - [`docs/mcp-setup.md`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/docs/mcp-setup.md)
 - [`docs/chatgpt-familyos-context.md`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/docs/chatgpt-familyos-context.md)
-
-## Telegram Digests
-
-FamilyOS can send Telegram digests using:
-
-- Supabase Postgres helper functions
-- a Supabase Edge Function
-- one Supabase cron job
-- the Telegram Bot API
-
-What it does:
-
-- daily digest: includes tomorrow's tasks and events
-- weekly digest: includes Saturday through next Friday when the London-local day is Saturday
-- monthly digest: includes the month when the London-local day is the 1st
-
-The current setup uses one daily cron trigger and lets the Edge Function decide which digest types are due based on the London-local date.
-
-Required secrets for the Edge Function:
-
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
-
-How to apply the database setup:
-
-1. Run the notification/digest migration:
-   - [`supabase/migrations/20250317120000_telegram_digest_support.sql`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/supabase/migrations/20250317120000_telegram_digest_support.sql)
-2. Do not use the Vault-based cron migration for this project if your Supabase instance does not support the `vault` extension.
-
-How to deploy the Edge Function:
-
-```bash
-npx --yes supabase login
-npx --yes supabase link --project-ref cnyanecvpotsfrjwzqdc
-npx --yes supabase functions deploy send-telegram-digests --project-ref cnyanecvpotsfrjwzqdc
-```
-
-How to configure cron:
-
-- Use the Supabase Dashboard cron/Edge Function scheduler
-- Trigger `send-telegram-digests`
-- Schedule: `0 6 * * *`
-- one job only
-
-Manual Telegram setup notes:
-
-- add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in Supabase Edge Function secrets
-- test once manually from the dashboard before relying on cron
-- verify Telegram delivery and `notification_log` rows
-
-Detailed setup notes:
-
-- [`docs/telegram-digests.md`](/Users/Alok_Sharma/Documents/myrepo/FamilyOS/docs/telegram-digests.md)
 
 ## Retest After Auth And RLS Changes
 
